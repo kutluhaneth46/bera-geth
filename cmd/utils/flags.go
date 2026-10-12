@@ -1927,13 +1927,19 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 		SetDNSDiscoveryDefaults(cfg, params.BepoliaGenesisHash)
 	default:
 		// bera-geth defaults to Berachain mainnet when no network flag is set
+		// and no custom genesis was already provided (e.g. via TOML --config).
+		// Preserve NetworkId == 0 for custom genesis so auto chainID derivation remains.
 		if cfg.Genesis == nil {
 			cfg.Genesis = core.DefaultBerachainGenesisBlock()
-		}
-		if cfg.NetworkId == 0 {
-			cfg.NetworkId = params.BerachainChainConfig.ChainID.Uint64()
-		}
-		if cfg.NetworkId == params.BerachainChainConfig.ChainID.Uint64() {
+			if cfg.NetworkId == 0 {
+				cfg.NetworkId = params.BerachainChainConfig.ChainID.Uint64()
+			}
+			SetDNSDiscoveryDefaults(cfg, params.BerachainGenesisHash)
+		} else if cfg.Genesis.Config != nil && cfg.Genesis.Config.ChainID != nil &&
+			cfg.Genesis.Config.ChainID.Cmp(params.BerachainChainConfig.ChainID) == 0 {
+			if cfg.NetworkId == 0 {
+				cfg.NetworkId = params.BerachainChainConfig.ChainID.Uint64()
+			}
 			SetDNSDiscoveryDefaults(cfg, params.BerachainGenesisHash)
 		}
 	}

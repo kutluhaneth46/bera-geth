@@ -20,6 +20,9 @@ package utils
 import (
 	"reflect"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/urfave/cli/v2"
 )
 
 func Test_SplitTagsFlag(t *testing.T) {
@@ -63,4 +66,36 @@ func Test_SplitTagsFlag(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMakeGenesisDefaultsToBerachain(t *testing.T) {
+	t.Parallel()
+	app := &cli.App{Flags: []cli.Flag{BerachainFlag, BepoliaFlag, MainnetFlag, SepoliaFlag, HoleskyFlag, HoodiFlag, DeveloperFlag}}
+	run := func(args ...string) *cli.Context {
+		var ctx *cli.Context
+		app.Action = func(c *cli.Context) error { ctx = c; return nil }
+		if err := app.Run(append([]string{"bera-geth"}, args...)); err != nil {
+			t.Fatalf("run: %v", err)
+		}
+		return ctx
+	}
+
+	t.Run("no flags", func(t *testing.T) {
+		g := MakeGenesis(run())
+		if g.ToBlock().Hash() != params.BerachainGenesisHash {
+			t.Fatalf("genesis hash %s, want berachain %s", g.ToBlock().Hash(), params.BerachainGenesisHash)
+		}
+	})
+	t.Run("berachain flag", func(t *testing.T) {
+		g := MakeGenesis(run("--berachain"))
+		if g.ToBlock().Hash() != params.BerachainGenesisHash {
+			t.Fatalf("genesis hash %s, want berachain", g.ToBlock().Hash())
+		}
+	})
+	t.Run("bepolia flag", func(t *testing.T) {
+		g := MakeGenesis(run("--bepolia"))
+		if g.ToBlock().Hash() != params.BepoliaGenesisHash {
+			t.Fatalf("genesis hash %s, want bepolia %s", g.ToBlock().Hash(), params.BepoliaGenesisHash)
+		}
+	})
 }

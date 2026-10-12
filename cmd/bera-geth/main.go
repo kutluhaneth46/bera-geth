@@ -313,7 +313,15 @@ func prepare(ctx *cli.Context) {
 		log.Info("Starting bera-geth on Berachain mainnet...")
 
 	default:
-		log.Info("Starting bera-geth on Berachain mainnet...")
+		// Only claim Berachain when no alternate network selector is present.
+		if !ctx.IsSet(utils.DeveloperFlag.Name) &&
+			!ctx.IsSet(utils.NetworkIdFlag.Name) &&
+			!ctx.IsSet(utils.OverrideGenesisFlag.Name) &&
+			!ctx.IsSet("config") {
+			log.Info("Starting bera-geth on Berachain mainnet...")
+		} else {
+			log.Info("Starting bera-geth...")
+		}
 	}
 
 	// If we're a full node on Berachain mainnet without --cache specified, bump default cache allowance

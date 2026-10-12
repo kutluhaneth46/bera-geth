@@ -47,9 +47,10 @@ var FullNodeGPO = gasprice.Config{
 	IgnorePrice:      gasprice.DefaultIgnorePrice,
 }
 
-// Defaults contains default settings for use on the Berachain main net.
+// Defaults contains default settings for use on the Ethereum and Berachain main net.
+// Genesis is left nil here so package import does not expand Berachain prealloc;
+// SetEthConfig / MakeGenesis default unset network selection to Berachain.
 var Defaults = Config{
-	Genesis:              core.DefaultBerachainGenesisBlock(),
 	HistoryMode:          history.KeepAll,
 	SyncMode:             SnapSync,
 	NetworkId:            0, // enable auto configuration of networkID == chainID
