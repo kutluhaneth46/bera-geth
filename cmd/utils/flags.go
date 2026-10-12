@@ -1917,9 +1917,24 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 			Fatalf("Invalid genesis file: %v", err)
 		}
 		cfg.Genesis = genesis
+	case ctx.Bool(BerachainFlag.Name):
+		cfg.NetworkId = params.BerachainChainConfig.ChainID.Uint64()
+		cfg.Genesis = core.DefaultBerachainGenesisBlock()
+		SetDNSDiscoveryDefaults(cfg, params.BerachainGenesisHash)
+	case ctx.Bool(BepoliaFlag.Name):
+		cfg.NetworkId = params.BepoliaChainConfig.ChainID.Uint64()
+		cfg.Genesis = core.DefaultBepoliaGenesisBlock()
+		SetDNSDiscoveryDefaults(cfg, params.BepoliaGenesisHash)
 	default:
-		if cfg.NetworkId == 1 {
-			SetDNSDiscoveryDefaults(cfg, params.MainnetGenesisHash)
+		// bera-geth defaults to Berachain mainnet when no network flag is set
+		if cfg.Genesis == nil {
+			cfg.Genesis = core.DefaultBerachainGenesisBlock()
+		}
+		if cfg.NetworkId == 0 {
+			cfg.NetworkId = params.BerachainChainConfig.ChainID.Uint64()
+		}
+		if cfg.NetworkId == params.BerachainChainConfig.ChainID.Uint64() {
+			SetDNSDiscoveryDefaults(cfg, params.BerachainGenesisHash)
 		}
 	}
 	// Set any dangling config values
@@ -2259,8 +2274,14 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 		genesis = core.DefaultSepoliaGenesisBlock()
 	case ctx.Bool(HoodiFlag.Name):
 		genesis = core.DefaultHoodiGenesisBlock()
+	case ctx.Bool(BerachainFlag.Name):
+		genesis = core.DefaultBerachainGenesisBlock()
+	case ctx.Bool(BepoliaFlag.Name):
+		genesis = core.DefaultBepoliaGenesisBlock()
 	case ctx.Bool(DeveloperFlag.Name):
 		Fatalf("Developer chains are ephemeral")
+	default:
+		genesis = core.DefaultBerachainGenesisBlock()
 	}
 	return genesis
 }
